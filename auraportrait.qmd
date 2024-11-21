@@ -28,14 +28,6 @@ Trying to create a program to replicate the "aura portrait" from *"Reading the A
 ## voronoiTreemap package
 
 ```{r}
-canada
-```
-
-```{r}
-ExampleGDP
-```
-
-```{r}
 vt_d3(vt_export_json(vt_testdata()))
 ```
 
@@ -96,7 +88,7 @@ dev.off()
 
 ```{r}
 class(tm2)
-class(treemap2) #null class, meaning that I have to save it from the viewer
+
 ```
 
 ## Adding custom data.
@@ -228,7 +220,7 @@ image_height <- image_info$height
 
 scaled_label_positions <- label_positions |>
   mutate(
-    x_pixel = x / 1800 * image_width,  # Scale x to image width
+    x_pixel = x / 2000 * image_width,  # Scale x to image width
     y_pixel = y / 2000 * image_height  # Scale y to image height
   )
 ```
@@ -240,25 +232,22 @@ scaled_label_positions <- label_positions |>
 ### Add labels
 
 ```{r}
+# Load the blurred image
 blurred_image <- aura_motion_blur  # Assuming this is your blurred base image
-canvas <- image_draw(blurred_image)
 
-# Add labels directly on the canvas
+# Loop through each label and annotate directly on the image
 for (i in seq_len(nrow(scaled_label_positions))) {
-  text(
-    x = round(scaled_label_positions$x_pixel[i]),
-    y = round(scaled_label_positions$y_y_pixel[i]),
-    labels = scaled_label_positions$label[i],
-    col = "white",  # Adjust label color
-    cex = 1.5       # Adjust label size
-  )
+  blurred_image <- blurred_image |> 
+    image_annotate(
+      text = scaled_label_positions$label[i],
+      size = 20,  # Adjust font size as needed
+      location = paste0("+", round(scaled_label_positions$x_pixel[i]), "+", round(scaled_label_positions$y_pixel[i])),
+      color = "white"  # Adjust label color
+    )
 }
 
-# Close the drawing device
-dev.off()
-
 # Save the final annotated image
-image_write(blurred_image, "final_treemap_with_all_labels.png")
+image_write(blurred_image, "charts/final_treemap_with_all_labels.png")
 
 # Display the final image
 print(blurred_image)
