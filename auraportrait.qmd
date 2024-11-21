@@ -42,10 +42,7 @@ vt_d3(vt_export_json(vt_testdata()))
 limited to circles?
 
 ```{r}
-vt_input_from_df(aura_data_tree)
 
-gdp_json <- vt_export_json(vt_input_from_df(aura_data_tree)) #needs a JSON input
-vt_d3(gdp_json)
 ```
 
 ## WeightedTreemaps package
@@ -125,7 +122,7 @@ aura_data_tree <- aura_data |>
 ```{r}
 #calculates the treemap
 tm_aura <- voronoiTreemap(data = aura_data, 
-                           cell_size = "Frequency",
+                          cell_size = "Frequency",
                           levels = "Emotion",
                           shape = rect_coords)
 
@@ -148,33 +145,216 @@ named_palette_2
 ### Drawing the treemap
 
 ```{r}
-
+# Save the plot as a PNG file
+png("charts/treemap_aura.png", width = 800, height = 1000)
 
 drawTreemap(tm_aura, 
-            title = "treemap 4", 
-            title_color = "black", 
-            label_size = 3,
+            levels = 1:length(tm_aura@call$levels),
+            # title = "Aura Portrait", 
+            # title_color = "black", 
+            # title_size = 2,
+            label_size = 2,
+            label_level = 1,
             color_type = "categorical", 
             #color_level = 1,
             color_palette = named_palette_2,
             border_color =NULL, #deleting the border
-            label_color = "white",
-            add = TRUE, 
-            layout = c(1, 1), 
-            position = c(1, 1),
+            label_color = NULL,
+            #layout = c(1, 1), 
+           # position = c(1, 1),
             legend = FALSE)
 
 # Turn off the device
 dev.off()
 ```
 
+### Storing Label names and locations for la
+
+```{r}
+label_positions <- purrr::map_dfr(names(tm_aura@cells), function(cell_name) {
+  cell_data <- tm_aura@cells[[cell_name]]
+  tibble::tibble(
+    label = cell_data$name,
+    x = cell_data$site[1],
+    y = cell_data$site[2]
+  )
+})
+```
+
 ## Reading the PNG with magick package
 
 ```{r}
-treemap_2 <- image_read("charts/treemap_output.png")
-treemap_2
+treemap_aura_temp <- image_read("charts/treemap_aura.png")
+treemap_aura_temp
 ```
 
 ```{r}
-str(canada)
+treemap_aura <- image_trim(treemap_aura_temp)
+treemap_aura
+```
+
+Using several motion blurs consecutively
+
+```{r}
+aura_motion_blur <- image_motion_blur(image = treemap_aura,
+                  20,
+                  110,
+                  45)|>
+  image_motion_blur(
+                  45,
+                  120,
+                  90)|>
+    image_motion_blur(
+                  90,
+                  30,
+                  180)
+
+aura_motion_blur 
+```
+
+### Saving motion blur version
+
+```{r}
+image_write(aura_motion_blur, path = "charts/aura_motion_blur.png")
+```
+
+```{r}
+# Add labels to the blurred image
+for (i in seq_len(nrow(label_positions))) {
+ aura_motion_blur <- aura_motion_blur |> 
+    image_annotate(
+      text = label_positions$label[i],
+      size = 20,  # Adjust font size as needed
+      location = paste0("+", round(label_positions$x[i]), "+", round(label_positions$y[i])),
+      color = "white"  # Adjust text color
+    )
+}
+
+```
+
+```{r}
+# Load the blurred image (assuming it's already loaded as aura_motion_blur)
+labeled_image <- aura_motion_blur 
+
+# Add labels to the image using a loop
+for (i in seq_len(nrow(label_positions))) {
+  # Create a temporary annotation layer for each label
+  label_layer <- image_blank(
+    width = image_info(labeled_image)$width,
+    height = image_info(labeled_image)$height,
+    color = "none"
+  ) |> 
+    image_annotate(
+      text = label_positions$label[i],
+      size = 20,  # Adjust font size
+      location = paste0("+", round(label_positions$x[i]), "+", round(label_positions$y[i])),
+      color = "white"  # Adjust text color
+    )
+  
+  # Composite the label layer onto the base image
+  labeled_image <- image_composite(labeled_image, label_layer)
+}
+```
+
+```{r}
+blurred_image <- aura_motion_blur  # Assuming this is your blurred base image
+canvas <- image_draw(blurred_image)
+
+# Add labels directly on the canvas
+for (i in seq_len(nrow(label_positions))) {
+  text(
+    x = round(label_positions$x[i]),
+    y = round(label_positions$y[i]),
+    labels = label_positions$label[i],
+    col = "white",  # Adjust label color
+    cex = 1.5       # Adjust label size
+  )
+}
+
+# Close the drawing device
+dev.off()
+
+# Save the final annotated image
+image_write(blurred_image, "final_treemap_with_all_labels.png")
+
+# Display the final image
+print(blurred_image)
+```
+
+```{r}
+
+# Load the blurred image
+blurred_image <- aura_motion_blur  # Assuming this is your blurred base image
+
+# Create a blank annotation layer with the same dimensions as the base image
+annotation_layer <- image_blank(
+  width = image_info(blurred_image)$width,
+  height = image_info(blurred_image)$height,
+  color = "none"  # Transparent background
+)
+
+# Loop through label_positions to annotate each label
+for (i in seq_len(nrow(label_positions))) {
+  # Add each label to the annotation layer
+  annotation_layer <- annotation_layer |> 
+    image_annotate(
+      text = label_positions$label[i],
+      size = 20,  # Font size
+      location = paste0("+", round(label_positions$x[i]), "+", round(label_positions$y[i])),
+      color = "white"
+    )
+}
+
+# Composite the annotation layer onto the blurred base image
+final_image <- image_composite(blurred_image, annotation_layer)
+
+# Save and display the final image
+image_write(final_image, "final_treemap_with_labels.png")
+print(final_image)
+```
+
+```{r}
+image_distort(image = treemap_aura,
+              distortion = "perspective",
+              coordinates <- c(0, 0, 100, 0, 0, 100, 100, 100,   # Source points
+                 10, 10, 90, 10, 10, 90, 90, 80))
+```
+
+```{r}
+image_morphology(
+image = treemap_aura,
+method = "convolve",
+kernel = "Gaussian",
+iterations = 1,
+opts = list()
+)
+```
+
+```{r}
+image_distort(image = treemap_aura, 
+              distortion = "arc",
+              coordinates = c(100))
+```
+
+```{r}
+image_blur(treemap_aura,
+           radius = 25,
+           sigma = 5)
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+image_blank(200, 200, pseudo_image = "gradient:#3498db-#db3a34",
+defines = c('gradient:direction' = 'east'))
+```
+
+```{r}
+image_implode(treemap_aura, factor = 0.1)
 ```
