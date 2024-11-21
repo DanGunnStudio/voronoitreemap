@@ -1,0 +1,9 @@
+Emotion,Sentiment,Frequency,Color
+Anticipation,Postive,25,#25C0E7
+Trust,Postive,18,#1FE9AF
+Joy,Postive,18,#AFFA37
+Surprise,Postive,10,#F66C19
+Fear,Negative,15,#FDAC34
+Sadness,Negative,12,#999999
+Disgust,Negative,10,#4451BF
+Anger,Negative,6,#A41301

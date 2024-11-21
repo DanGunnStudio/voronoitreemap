@@ -1,0 +1,180 @@
+---
+title: "voronoitreemap"
+format: html
+editor: visual
+---
+
+```{r}
+required_packages <- c("tidyverse", 
+                       "voronoiTreemap",
+                       "magick",
+                       "WeightedTreemaps",
+                       "viridis")
+
+for (pkg in required_packages) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    install.packages(pkg)
+  }
+  library(pkg, character.only = TRUE)
+}
+```
+
+## About:
+
+Trying to create a program to replicate the "aura portrait" from *"Reading the Auras of Democrats and Republicans on the Eve of the Election"* in the [NY Times](https://www.nytimes.com/2024/11/04/opinion/democrat-republican-election-vibes.html). Specifically this is intended to represent sentiment data from NLP.
+
+### Getting data
+
+## voronoiTreemap package
+
+```{r}
+canada
+```
+
+```{r}
+ExampleGDP
+```
+
+```{r}
+vt_d3(vt_export_json(vt_testdata()))
+```
+
+limited to circles?
+
+```{r}
+vt_input_from_df(aura_data_tree)
+
+gdp_json <- vt_export_json(vt_input_from_df(aura_data_tree)) #needs a JSON input
+vt_d3(gdp_json)
+```
+
+## WeightedTreemaps package
+
+Allows custom shapes.
+
+```{r}
+#custom rectangle shape
+rect_coords <- list(
+  x = c(0, 8, 8, 0),
+  y = c(0, 0, 10, 10))
+```
+
+```{r}
+# set seed to obtain same df every time
+set.seed(123)
+df <- data.frame(A = sample(10:100, 45))
+
+#calculates the treemap
+tm2 <- voronoiTreemap(data = df, levels = "A",
+  shape = rect_coords)
+
+# Save the plot as a PNG file
+png("charts/treemap_output.png", width = 600, height = 800)
+
+#draws the treemap
+# drawTreemap(tm2, 
+#             add = TRUE, 
+#             layout = c(1,1), 
+#             position = c(1, 1))
+
+drawTreemap(tm2, 
+            title = "treemap 4", 
+            title_color = "black", 
+            label_size = 1,
+            color_type = "cell_size", 
+            color_level = 1,
+            color_palette = heat.colors(10),
+            border_color =NULL, #deleting the border
+            label_color = "white",
+            add = TRUE, 
+            layout = c(1, 1), 
+            position = c(1, 1),
+            legend = TRUE
+            )
+
+# Turn off the device
+dev.off()
+
+```
+
+```{r}
+class(tm2)
+class(treemap2) #null class, meaning that I have to save it from the viewer
+```
+
+## Adding custom data.
+
+```{r}
+aura_data <- read_csv("raw_data/FingerPaint_Aura/Sheet 1-superstore.csv")
+```
+
+```{r}
+aura_data_tree <- aura_data |>
+  rename(h1 = "Sentiment",
+         h2 = Sentiment,
+         h3 = Emotion,
+         color = Color,
+         weight = Frequency)|>
+  mutate(h1 = as.character("Sentiment"),
+         codes = h3)|>
+  select(h1,h2,h3, color,weight, codes)
+```
+
+### Calculating a Voronoi Treemap
+
+```{r}
+#calculates the treemap
+tm_aura <- voronoiTreemap(data = aura_data, 
+                           cell_size = "Frequency",
+                          levels = "Emotion",
+                          shape = rect_coords)
+
+```
+
+### Choosing a palette
+
+```{r}
+categories <- aura_data |> pull(Emotion) |> unique()
+color_palette <- viridis(length(categories), option = "H")
+
+named_palette <- setNames(color_palette, categories)
+
+named_palette
+
+named_palette_2 <-setNames( aura_data$Color, aura_data$Emotion)
+named_palette_2 
+```
+
+### Drawing the treemap
+
+```{r}
+
+
+drawTreemap(tm_aura, 
+            title = "treemap 4", 
+            title_color = "black", 
+            label_size = 3,
+            color_type = "categorical", 
+            #color_level = 1,
+            color_palette = named_palette_2,
+            border_color =NULL, #deleting the border
+            label_color = "white",
+            add = TRUE, 
+            layout = c(1, 1), 
+            position = c(1, 1),
+            legend = FALSE)
+
+# Turn off the device
+dev.off()
+```
+
+## Reading the PNG with magick package
+
+```{r}
+treemap_2 <- image_read("charts/treemap_output.png")
+treemap_2
+```
+
+```{r}
+str(canada)
+```
