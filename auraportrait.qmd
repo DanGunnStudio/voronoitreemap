@@ -218,54 +218,37 @@ aura_motion_blur
 image_write(aura_motion_blur, path = "charts/aura_motion_blur.png")
 ```
 
-```{r}
-# Add labels to the blurred image
-for (i in seq_len(nrow(label_positions))) {
- aura_motion_blur <- aura_motion_blur |> 
-    image_annotate(
-      text = label_positions$label[i],
-      size = 20,  # Adjust font size as needed
-      location = paste0("+", round(label_positions$x[i]), "+", round(label_positions$y[i])),
-      color = "white"  # Adjust text color
-    )
-}
+### Scaling label positions
 
+```{r}
+
+image_info <- image_info(aura_motion_blur)
+image_width <- image_info$width
+image_height <- image_info$height
+
+scaled_label_positions <- label_positions |>
+  mutate(
+    x_pixel = x / 1800 * image_width,  # Scale x to image width
+    y_pixel = y / 2000 * image_height  # Scale y to image height
+  )
 ```
 
 ```{r}
-# Load the blurred image (assuming it's already loaded as aura_motion_blur)
-labeled_image <- aura_motion_blur 
 
-# Add labels to the image using a loop
-for (i in seq_len(nrow(label_positions))) {
-  # Create a temporary annotation layer for each label
-  label_layer <- image_blank(
-    width = image_info(labeled_image)$width,
-    height = image_info(labeled_image)$height,
-    color = "none"
-  ) |> 
-    image_annotate(
-      text = label_positions$label[i],
-      size = 20,  # Adjust font size
-      location = paste0("+", round(label_positions$x[i]), "+", round(label_positions$y[i])),
-      color = "white"  # Adjust text color
-    )
-  
-  # Composite the label layer onto the base image
-  labeled_image <- image_composite(labeled_image, label_layer)
-}
 ```
+
+### Add labels
 
 ```{r}
 blurred_image <- aura_motion_blur  # Assuming this is your blurred base image
 canvas <- image_draw(blurred_image)
 
 # Add labels directly on the canvas
-for (i in seq_len(nrow(label_positions))) {
+for (i in seq_len(nrow(scaled_label_positions))) {
   text(
-    x = round(label_positions$x[i]),
-    y = round(label_positions$y[i]),
-    labels = label_positions$label[i],
+    x = round(scaled_label_positions$x_pixel[i]),
+    y = round(scaled_label_positions$y_y_pixel[i]),
+    labels = scaled_label_positions$label[i],
     col = "white",  # Adjust label color
     cex = 1.5       # Adjust label size
   )
@@ -283,34 +266,7 @@ print(blurred_image)
 
 ```{r}
 
-# Load the blurred image
-blurred_image <- aura_motion_blur  # Assuming this is your blurred base image
 
-# Create a blank annotation layer with the same dimensions as the base image
-annotation_layer <- image_blank(
-  width = image_info(blurred_image)$width,
-  height = image_info(blurred_image)$height,
-  color = "none"  # Transparent background
-)
-
-# Loop through label_positions to annotate each label
-for (i in seq_len(nrow(label_positions))) {
-  # Add each label to the annotation layer
-  annotation_layer <- annotation_layer |> 
-    image_annotate(
-      text = label_positions$label[i],
-      size = 20,  # Font size
-      location = paste0("+", round(label_positions$x[i]), "+", round(label_positions$y[i])),
-      color = "white"
-    )
-}
-
-# Composite the annotation layer onto the blurred base image
-final_image <- image_composite(blurred_image, annotation_layer)
-
-# Save and display the final image
-image_write(final_image, "final_treemap_with_labels.png")
-print(final_image)
 ```
 
 ```{r}
