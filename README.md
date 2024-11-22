@@ -10,7 +10,7 @@ Trying to create a program to replicate the “aura portrait” from *“Reading
 
 Using the {WeightedTreemap} package to build a voronoi treemap with area calculations that match the relative size of each emotion from the NLP analysis. The location of the nodes is mapped and carried forward to label following image processing with {magick} package.
 
-![](images/clipboard-3778131917.png){width="372"}
+![](images/clipboard-3778131917.png)
 
 ### To do:
 
