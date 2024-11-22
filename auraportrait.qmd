@@ -4,6 +4,12 @@ format: html
 editor: visual
 ---
 
+## About:
+
+Trying to create a program to replicate the "aura portrait" from *"Reading the Auras of Democrats and Republicans on the Eve of the Election"* in the [NY Times](https://www.nytimes.com/2024/11/04/opinion/democrat-republican-election-vibes.html). Specifically this is intended to represent sentiment data from NLP.
+
+### Loading Packages
+
 ```{r}
 required_packages <- c("tidyverse", 
                        "voronoiTreemap",
@@ -19,27 +25,17 @@ for (pkg in required_packages) {
 }
 ```
 
-## About:
-
-Trying to create a program to replicate the "aura portrait" from *"Reading the Auras of Democrats and Republicans on the Eve of the Election"* in the [NY Times](https://www.nytimes.com/2024/11/04/opinion/democrat-republican-election-vibes.html). Specifically this is intended to represent sentiment data from NLP.
-
-### Getting data
-
 ## voronoiTreemap package
 
 ```{r}
 vt_d3(vt_export_json(vt_testdata()))
 ```
 
-limited to circles?
-
-```{r}
-
-```
+Cons: Limited to circles? Clunky data shaping requirements.
 
 ## WeightedTreemaps package
 
-Allows custom shapes.
+Allows custom shapes! With coordinate definitions. Also some built in shapes.
 
 ```{r}
 #custom rectangle shape
