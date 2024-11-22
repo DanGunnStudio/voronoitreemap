@@ -90,7 +90,7 @@ class(tm2)
 ## Adding custom data.
 
 ```{r}
-aura_data <- read_csv("raw_data/FingerPaint_Aura/Sheet 1-superstore.csv")
+aura_data <- read_csv("raw_data/Aura/Sheet 1-superstore.csv")
 ```
 
 ```{r}
